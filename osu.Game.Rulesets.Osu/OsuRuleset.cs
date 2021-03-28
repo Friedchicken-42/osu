@@ -106,6 +106,9 @@ namespace osu.Game.Rulesets.Osu
 
             if (mods.HasFlagFast(LegacyMods.TouchDevice))
                 yield return new OsuModTouchDevice();
+
+            if (mods.HasFlagFast(LegacyMods.OsuRandom))
+                yield return new OsuModRandom();
         }
 
         public override LegacyMods ConvertToLegacyMods(Mod[] mods)
@@ -179,6 +182,7 @@ namespace osu.Game.Rulesets.Osu
                 case ModType.Fun:
                     return new Mod[]
                     {
+                        new OsuModRandom(),
                         new OsuModTransform(),
                         new OsuModWiggle(),
                         new OsuModSpinIn(),

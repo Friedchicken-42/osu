@@ -39,5 +39,6 @@ namespace osu.Game.Beatmaps.Legacy
         Key3 = 1 << 27,
         Key2 = 1 << 28,
         Mirror = 1 << 30,
+        OsuRandom = 1 << 31,
     }
 }
