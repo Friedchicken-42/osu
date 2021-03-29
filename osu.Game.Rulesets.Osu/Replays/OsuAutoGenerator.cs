@@ -155,9 +155,11 @@ namespace osu.Game.Rulesets.Osu.Replays
                 if (spinner.SpinsRequired == 0)
                     return;
 
-                calcSpinnerStartPosAndDirection(((OsuReplayFrame)Frames[^1]).Position, out startPosition, out spinnerDirection);
+                Vector2 spinnerPostion = h.Position;
 
-                Vector2 spinCentreOffset = SPINNER_CENTRE - ((OsuReplayFrame)Frames[^1]).Position;
+                calcSpinnerStartPosAndDirection(((OsuReplayFrame)Frames[^1]).Position, out startPosition, out spinnerDirection, spinnerPostion);
+
+                Vector2 spinCentreOffset = spinnerPostion - ((OsuReplayFrame)Frames[^1]).Position;
 
                 if (spinCentreOffset.Length > SPIN_RADIUS)
                 {
@@ -180,9 +182,9 @@ namespace osu.Game.Rulesets.Osu.Replays
 
         #region Helper subroutines
 
-        private static void calcSpinnerStartPosAndDirection(Vector2 prevPos, out Vector2 startPosition, out float spinnerDirection)
+        private static void calcSpinnerStartPosAndDirection(Vector2 prevPos, out Vector2 startPosition, out float spinnerDirection, Vector2 spinnerPosition)
         {
-            Vector2 spinCentreOffset = SPINNER_CENTRE - prevPos;
+            Vector2 spinCentreOffset = spinnerPosition - prevPos;
             float distFromCentre = spinCentreOffset.Length;
             float distToTangentPoint = MathF.Sqrt(distFromCentre * distFromCentre - SPIN_RADIUS * SPIN_RADIUS);
 
@@ -216,13 +218,13 @@ namespace osu.Game.Rulesets.Osu.Replays
             else if (spinCentreOffset.Length > 0)
             {
                 // Previous cursor position was inside spin circle, set startPosition to the nearest point on spin circle.
-                startPosition = SPINNER_CENTRE - spinCentreOffset * (SPIN_RADIUS / spinCentreOffset.Length);
+                startPosition = spinnerPosition - spinCentreOffset * (SPIN_RADIUS / spinCentreOffset.Length);
                 spinnerDirection = 1;
             }
             else
             {
                 // Degenerate case where cursor position is exactly at the centre of the spin circle.
-                startPosition = SPINNER_CENTRE + new Vector2(0, -SPIN_RADIUS);
+                startPosition = spinnerPosition + new Vector2(0, -SPIN_RADIUS);
                 spinnerDirection = 1;
             }
         }
@@ -335,7 +337,8 @@ namespace osu.Game.Rulesets.Osu.Replays
             {
                 // We add intermediate frames for spinning / following a slider here.
                 case Spinner spinner:
-                    Vector2 difference = startPosition - SPINNER_CENTRE;
+                    Vector2 spinnerPostion = h.Position;
+                    Vector2 difference = startPosition - spinnerPostion;
 
                     float radius = difference.Length;
                     float angle = radius == 0 ? 0 : MathF.Atan2(difference.Y, difference.X);
@@ -348,7 +351,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                         t = ApplyModsToTimeDelta(previousFrame, nextFrame) * spinnerDirection;
                         angle += (float)t / 20;
 
-                        Vector2 pos = SPINNER_CENTRE + CirclePosition(angle, SPIN_RADIUS);
+                        Vector2 pos = spinnerPostion + CirclePosition(angle, SPIN_RADIUS);
                         AddFrameToReplay(new OsuReplayFrame((int)nextFrame, new Vector2(pos.X, pos.Y), action));
 
                         previousFrame = nextFrame;
@@ -357,7 +360,7 @@ namespace osu.Game.Rulesets.Osu.Replays
                     t = ApplyModsToTimeDelta(previousFrame, spinner.EndTime) * spinnerDirection;
                     angle += (float)t / 20;
 
-                    Vector2 endPosition = SPINNER_CENTRE + CirclePosition(angle, SPIN_RADIUS);
+                    Vector2 endPosition = spinnerPostion + CirclePosition(angle, SPIN_RADIUS);
 
                     AddFrameToReplay(new OsuReplayFrame(spinner.EndTime, new Vector2(endPosition.X, endPosition.Y), action));
 
